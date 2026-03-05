@@ -1,6 +1,7 @@
 from typing import Dict, Any, List, Tuple
 import re
 from datetime import datetime, timedelta
+from venue_utils import classify_venue
 
 def is_recent_enough(published: str, recent_months: int) -> bool:
     if not published:
@@ -48,6 +49,27 @@ def score_paper(p: Dict[str, Any], cfg) -> Tuple[float, Dict[str, Any]]:
         if any(_norm(k) in text for k in kws):
             score += 3.0
             tags.append(flag)
+    
+    # venue质量加分（把“质量”引入排序）
+    vtype, level, _ = classify_venue(p.get("venue",""), p.get("source",""))
+
+    # level: "安全顶会" / "ML/AI顶会" / "顶刊" / "会议" / "期刊" / "预印本" / "未知"
+    if level == "安全顶会":
+        score += 6.0
+        tags.append("安全顶会")
+    elif level == "ML/AI顶会":
+        score += 5.0
+        tags.append("ML顶会")
+    elif level == "顶刊":
+        score += 5.0
+        tags.append("顶刊")
+    elif vtype == "会议":
+        score += 2.0
+    elif vtype == "期刊":
+        score += 2.0
+    elif vtype == "预印本":
+        score += 0.5
+
 
     # source微调：PWC更偏代码/benchmark信号；arXiv更新快
     src = (p.get("source","") or "").lower()
@@ -61,13 +83,13 @@ def score_paper(p: Dict[str, Any], cfg) -> Tuple[float, Dict[str, Any]]:
     try:
         d = datetime.fromisoformat(pub).date()
         days_ago = (datetime.utcnow().date() - d).days
-        # 0-30天 +4 分，30-180天 +2 分，180-540天 +1 分
+        # 新鲜度：加分但不主导
         if days_ago <= 30:
-            score += 4.0
-        elif days_ago <= 180:
             score += 2.0
-        elif days_ago <= 540:
+        elif days_ago <= 180:
             score += 1.0
+        else:
+            score += 0.0
     except Exception:
         # 没有日期/解析失败：不加分（相对靠后）
         pass

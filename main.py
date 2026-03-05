@@ -12,6 +12,8 @@ from summarizer import summarize_with_llm
 from renderer import render_daily
 from translator import translate_title_and_tags, cache_key
 from venue_utils import classify_venue
+from dedup import canonical_key
+from sources_openalex import fetch_openalex
 
 
 def main():
@@ -21,7 +23,6 @@ def main():
     st = Storage(cfg.db_path)
 
     # 1) Fetch
-    papers = []
     papers = []
 
     try:
@@ -37,6 +38,13 @@ def main():
         papers += s
     except Exception as e:
         print("[WARN] SemanticScholar fetch failed:", e)
+
+    try:
+        o = fetch_openalex(cfg.fetch_days)
+        print(f"[INFO] OpenAlex fetched: {len(o)}")
+        papers += o
+    except Exception as e:
+        print("[WARN] OpenAlex fetch failed:", e)
 
     try:
         p = fetch_pwc(max(cfg.fetch_days, 14))
@@ -61,8 +69,18 @@ def main():
     # 2) Store + normalize IDs
     stored = []
     for p in papers:
+        # 先用 upsert 得到一个 pid
         pid = st.upsert_paper(p)
-        p["id"] = pid
+
+        # 再用 canonical_key 做跨源去重绑定
+        ck = canonical_key(p.get("title",""), p.get("url",""))
+        existing = st.get_paper_id_by_key(ck)
+        if existing:
+            p["id"] = existing
+        else:
+            st.bind_key(ck, pid)
+            p["id"] = pid
+
         stored.append(p)
 
     # 3) Rank & select

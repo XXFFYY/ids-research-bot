@@ -8,6 +8,17 @@ def _hash(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8", errors="ignore")).hexdigest()
 
 class Storage:
+    def get_paper_id_by_key(self, key: str):
+        cur = self.conn.execute("SELECT paper_id FROM paper_keys WHERE canonical_key=? LIMIT 1", (key,))
+        row = cur.fetchone()
+        return row[0] if row else None
+
+    def bind_key(self, key: str, paper_id: str):
+        self.conn.execute(
+            "INSERT OR REPLACE INTO paper_keys(canonical_key,paper_id) VALUES (?,?)",
+            (key, paper_id)
+        )
+        self.conn.commit()
     def get_translation(self, key: str):
         cur = self.conn.execute("SELECT title_zh, tags_zh FROM translations WHERE key=? LIMIT 1", (key,))
         row = cur.fetchone()
@@ -25,7 +36,9 @@ class Storage:
         )
         self.conn.commit()
     def __init__(self, db_path: str):
-        os.makedirs(os.path.dirname(db_path), exist_ok=True)
+        dir_ = os.path.dirname(db_path)
+        if dir_:
+            os.makedirs(dir_, exist_ok=True)
         self.conn = sqlite3.connect(db_path)
         self.conn.execute("PRAGMA journal_mode=WAL;")
         self._init_schema()
@@ -64,6 +77,12 @@ class Storage:
             date TEXT,
             paper_id TEXT,
             PRIMARY KEY (date, paper_id)
+        )
+        """)
+        self.conn.execute("""
+        CREATE TABLE IF NOT EXISTS paper_keys (
+            canonical_key TEXT PRIMARY KEY,
+            paper_id TEXT
         )
         """)
         self.conn.commit()
