@@ -6,12 +6,12 @@ from report_common import BEIJING, load_cfg, fetch_papers_in_range, render_repor
 def main():
     cfg = load_cfg()
     today_bj = datetime.now(BEIJING).date()
-    # 周报：过去7天（不含今天也行；这里含今天-6到今天）
+    # 周报：过去7天（含今天-6到今天）
     start = today_bj - timedelta(days=6)
     end = today_bj
 
     papers, mapping = fetch_papers_in_range(cfg.db_path, start, end)
-    stats_md, items_md = render_report("周报", start, end, papers, mapping)
+    stats_md, items_md = render_report(cfg, "周报", start, end, papers, mapping)
     insight = llm_trend_summary(cfg, "周报", start, end, stats_md, items_md)
 
     md = "\n".join([

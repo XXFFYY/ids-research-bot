@@ -42,6 +42,112 @@ def push_pushplus(token: str, title: str, content_md: str) -> bool:
         print("[WARN] PushPlus failed:", r.status_code, r.text[:300])
     return ok
 
+def report_title_key(title_en: str) -> str:
+    t = (title_en or "").strip().lower()
+    h = hashlib.sha256(t.encode("utf-8", errors="ignore")).hexdigest()[:24]
+    return f"report_title:{h}"
+
+def get_title_zh(conn: sqlite3.Connection, title_en: str) -> str | None:
+    key = report_title_key(title_en)
+    cur = conn.execute("SELECT title_zh FROM translations WHERE key=? LIMIT 1", (key,))
+    row = cur.fetchone()
+    return row[0] if row and row[0] else None
+
+def save_title_zh(conn: sqlite3.Connection, title_en: str, title_zh: str):
+    key = report_title_key(title_en)
+    conn.execute(
+        "INSERT OR REPLACE INTO translations(key, title_zh, tags_zh, created_at) VALUES (?, ?, ?, ?)",
+        (key, title_zh, "", datetime.utcnow().isoformat())
+    )
+    conn.commit()
+
+def translate_titles_batch(cfg: Cfg, titles_en: List[str]) -> Dict[str, str]:
+    """
+    批量翻译标题：
+    - 先查 translations 缓存
+    - 缺失的再调用一次 DeepSeek
+    - 翻译结果写回 translations
+    """
+    titles_en = [t.strip() for t in titles_en if t and t.strip()]
+    if not titles_en:
+        return {}
+
+    conn = sqlite3.connect(cfg.db_path)
+    out: Dict[str, str] = {}
+    missing: List[str] = []
+
+    try:
+        for t in titles_en:
+            cached = get_title_zh(conn, t)
+            if cached:
+                out[t] = cached
+            else:
+                missing.append(t)
+
+        if not missing:
+            return out
+
+        if not cfg.openai_api_key:
+            return out
+
+        items = [{"id": i + 1, "title_en": t} for i, t in enumerate(missing)]
+        prompt = f"""
+请把下面这些论文标题翻译成中文，要求：
+1. 准确
+2. 学术风格
+3. 简洁
+4. 不要添加解释
+
+请严格输出 JSON 数组，格式如下：
+[
+  {{"id": 1, "title_zh": "..."}},
+  {{"id": 2, "title_zh": "..."}}
+]
+
+输入：
+{json.dumps(items, ensure_ascii=False)}
+""".strip()
+
+        url = cfg.openai_base_url.rstrip("/") + "/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {cfg.openai_api_key}",
+            "Content-Type": "application/json",
+        }
+        payload = {
+            "model": cfg.openai_model,
+            "messages": [
+                {"role": "system", "content": "你是严谨的学术翻译助手，只输出JSON数组。"},
+                {"role": "user", "content": prompt},
+            ],
+            "temperature": 0.1,
+        }
+
+        r = requests.post(url, headers=headers, json=payload, timeout=60)
+        if r.status_code != 200:
+            return out
+
+        content = r.json()["choices"][0]["message"]["content"].strip()
+        content = content.strip("`").strip()
+
+        arr = json.loads(content)
+        id2zh = {
+            int(x["id"]): (x.get("title_zh") or "").strip()
+            for x in arr
+            if "id" in x
+        }
+
+        for i, t in enumerate(missing, 1):
+            zh = id2zh.get(i, "")
+            if zh:
+                out[t] = zh
+                save_title_zh(conn, t, zh)
+
+        return out
+    except Exception:
+        return out
+    finally:
+        conn.close()
+    
 def _table_columns(conn: sqlite3.Connection, table: str) -> List[str]:
     cur = conn.execute(f"PRAGMA table_info({table})")
     return [row[1] for row in cur.fetchall()]  # name at index 1
@@ -200,7 +306,7 @@ def llm_trend_summary(cfg: Cfg, scope_name: str, start: date, end: date, stats_m
 
     return r.json()["choices"][0]["message"]["content"].strip()
 
-def render_report(scope_name: str, start: date, end: date, papers: List[Dict[str, Any]], mapping: Dict[str, str]) -> str:
+def render_report(cfg: Cfg, scope_name: str, start: date, end: date, papers: List[Dict[str, Any]], mapping: Dict[str, str]) -> str:
     title_key = mapping["title"]
     pub_key = mapping["published"]
     url_key = mapping["url"]
@@ -239,23 +345,42 @@ def render_report(scope_name: str, start: date, end: date, papers: List[Dict[str
     # Top 列表
     top_items = top_k(papers_u, 12 if scope_name == "周报" else 20, pub_key)
     items_md = []
-    items_md.append("## Top 论文（按score优先，其次按日期；缺score则按日期）")
+    items_md.append("## Top 论文（中文标题 + 英文标题）")
+    items_md.append("")
+
+    titles = [(p.get(title_key, "") or "").strip() for p in top_items]
+    tmap = translate_titles_batch(cfg, titles)
+
     for i, p in enumerate(top_items, 1):
         t = (p.get(title_key, "") or "").strip()
+        tzh = tmap.get(t, "")
+
         d = (p.get(pub_key, "") or "")[:10]
         u = (p.get(url_key, "") or "").strip()
         src = (p.get(source_key, "") or "").strip()
         ven = (p.get(venue_key, "") or "").strip()
-        line = f"{i}. **{t}**"
+
+        if tzh and tzh != t:
+            items_md.append(f"{i}. **{tzh}**")
+            items_md.append("")
+            items_md.append(f"*{t}*")
+        else:
+            items_md.append(f"{i}. **{t}**")
+
         meta = []
-        if d: meta.append(d)
-        if ven: meta.append(ven)
-        if src: meta.append(src)
+        if d:
+            meta.append(d)
+        if ven:
+            meta.append(ven)
+        if src:
+            meta.append(src)
         if meta:
-            line += f"  \n   _{' | '.join(meta)}_"
+            items_md.append(f"- {' | '.join(meta)}")
         if u:
-            line += f"  \n   链接：{u}"
-        items_md.append(line)
+            items_md.append(f"- 链接：{u}")
+
+        items_md.append("")
+
     items_md_s = "\n".join(items_md)
 
     return stats_md_s, items_md_s

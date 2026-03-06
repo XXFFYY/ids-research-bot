@@ -6,12 +6,12 @@ def main():
     cfg = load_cfg()
     today_bj = datetime.now(BEIJING).date()
 
-    # 月报：过去30天（最低资源且足够稳定）
+    # 月报：过去30天
     start = today_bj - timedelta(days=29)
     end = today_bj
 
     papers, mapping = fetch_papers_in_range(cfg.db_path, start, end)
-    stats_md, items_md = render_report("月报", start, end, papers, mapping)
+    stats_md, items_md = render_report(cfg, "月报", start, end, papers, mapping)
     insight = llm_trend_summary(cfg, "月报", start, end, stats_md, items_md)
 
     md = "\n".join([
