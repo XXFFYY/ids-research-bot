@@ -14,7 +14,7 @@ def summarize_with_llm(p: Dict[str, Any], cfg) -> Dict[str, str]:
     gh_text = "\n".join(gh_links[:3]) if gh_links else "无"
 
     prompt = f"""
-你是网络入侵检测（IDS）与AI安全领域的科研助理。
+你是“多智能体网络安全 + 安全运营自动化”方向的科研助理。
 请基于以下论文信息，生成中文结构化摘要，用于每日科研前沿推送。
 
 【标题】
@@ -36,10 +36,11 @@ def summarize_with_llm(p: Dict[str, Any], cfg) -> Dict[str, str]:
 1️⃣ 研究问题
 2️⃣ 核心方法
 3️⃣ 关键实验/数据集/评估（若未知就说“摘要未说明”）
-4️⃣ 与 IDS / 分布式协同检测 / 通信效率 / 联邦安全 的关系（结合我的研究方向，务必具体）
-5️⃣ 可能的启发/可复用点（面向“多Agent协同IDS、特征分区、Attention融合、低通信成本检测”）
+4️⃣ 与“多智能体协同安全分析 / SOC自动化 / 威胁情报推理 / 事件响应自动化”的关系（务必具体）
+5️⃣ 对我研究“类MetaGPT框架在网络安全中的应用”的启发/可复用点
 6️⃣ 数据集/代码/benchmark 可复用点（若有，请明确点出并说明；若无则写‘摘要未说明’。）
 
+如果论文与网络安全关系较弱，但在 agent workflow / planning / reflection / tool use / multi-agent coordination 上有借鉴价值，也请明确指出。
 """.strip()
 
     url = cfg.openai_base_url.rstrip("/") + "/chat/completions"
@@ -71,11 +72,11 @@ def fallback_summary(p: Dict[str, Any]) -> Dict[str, str]:
     abstract = (p.get("abstract","") or "").strip()
     abstract_short = (abstract[:260] + "…") if len(abstract) > 260 else abstract
 
-    content = f"""1️⃣ 研究问题：围绕 {tags} 的检测/建模问题（摘要未用LLM精读）。
-2️⃣ 核心方法：摘要未说明细节（建议点开原文查看模型/训练/部署设置）。
+    content = f"""1️⃣ 研究问题：围绕 {tags} 的智能体协作/安全分析问题（摘要未用LLM精读）。
+2️⃣ 核心方法：摘要未说明细节（建议查看原文中的 agent 角色设计、工具调用、RAG 或 workflow 部分）。
 3️⃣ 关键实验/评估：摘要未说明。
-4️⃣ 与我的研究关系：可能与“协同检测/分布式推理/通信效率/联邦安全”相关，建议优先看方法部分。
-5️⃣ 启发：可关注特征共享策略、融合机制（如Attention）、以及低带宽下的信息压缩。
+4️⃣ 与我的研究关系：可能与“多智能体协同安全分析、SOC自动化、威胁情报推理、事件响应自动化”相关，建议优先看系统框架与实验部分。
+5️⃣ 启发：可关注任务拆解、角色分工、记忆机制、工具使用、校验/反思机制。
 （摘要片段：{abstract_short}）
 """
     return {"full": content}

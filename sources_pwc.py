@@ -6,11 +6,11 @@ PWC_SEARCH = "https://paperswithcode.com/api/v1/papers/"
 
 def fetch_pwc(fetch_days: int = 14, page_size: int = 30) -> List[Dict[str, Any]]:
     keywords = [
-        "intrusion detection",
-        "network anomaly",
-        "cybersecurity",
-        "federated intrusion detection",
-        "distributed intrusion detection",
+    "multi-agent cybersecurity",
+    "llm cybersecurity",
+    "security agent",
+    "incident response automation",
+    "soc automation",
     ]
     cutoff = datetime.utcnow().date() - timedelta(days=fetch_days)
 

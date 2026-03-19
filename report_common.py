@@ -273,22 +273,22 @@ def llm_trend_summary(cfg: Cfg, scope_name: str, start: date, end: date, stats_m
         blob = blob[:24000] + "\n\n（内容过长已截断）"
 
     prompt = f"""
-你是网络安全与机器学习方向的科研情报分析员。请基于我提供的“统计摘要 + Top论文列表”，用中文输出 {scope_name} 的研究趋势洞察。
-要求：
-- 只能使用提供的信息推断，不要编造不存在的论文、指标或结论。
-- 输出要落地：指出可能的热点方向、常见方法组合、数据集/benchmark/开源趋势、以及对“协同/分布式IDS、低通信、特征共享/融合、联邦安全”的启示。
-- 如果信息不足以支持某结论，请明确说“样本不足/信息不足”。
+    你是网络安全与智能体系统方向的科研情报分析员。请基于我提供的“统计摘要 + Top论文列表”，用中文输出 {scope_name} 的研究趋势洞察。
+    要求：
+    - 只能使用提供的信息推断，不要编造不存在的论文、指标或结论。
+    - 输出要落地：指出可能的热点方向、常见方法组合、数据集/benchmark/开源趋势、以及对“多智能体安全分析、SOC自动化、威胁情报关联、事件响应自动化”的启示。
+    - 如果信息不足以支持某结论，请明确说“样本不足/信息不足”。
 
-输出格式（Markdown）：
-### 趋势洞察（{start.isoformat()} ~ {end.isoformat()}）
-1. 热点方向（2-4条）
-2. 方法信号（2-4条）
-3. 数据集/Benchmark/开源（如有则列出1-3条；没有则说明缺失）
-4. 对 Collaborative IDS 的可行动建议（3条，尽量具体）
+    输出格式（Markdown）：
+    ### 趋势洞察（{start.isoformat()} ~ {end.isoformat()}）
+    1. 热点方向（2-4条）
+    2. 方法信号（2-4条）
+    3. 数据集/Benchmark/开源（如有则列出1-3条；没有则说明缺失）
+    4. 对“类MetaGPT安全框架研究”的可行动建议（3条，尽量具体）
 
-下面是输入数据：
-{blob}
-""".strip()
+    下面是输入数据：
+    {blob}
+    """.strip()
 
     url = cfg.openai_base_url.rstrip("/") + "/chat/completions"
     headers = {"Authorization": f"Bearer {cfg.openai_api_key}", "Content-Type": "application/json"}

@@ -125,7 +125,7 @@ def main():
         f.write(md)
     print("[INFO] archived:", archive_path)
     st.save_digest(today, md)
-    ok = push_pushplus(cfg.pushplus_token, f"今日IDS科研前沿（{today}）", md)
+    ok = push_pushplus(cfg.pushplus_token, f"今日多智能体网络安全科研前沿（{today}）", md)
 
     if ok:
         st.mark_pushed(today, pushed_ids)

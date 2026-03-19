@@ -20,57 +20,59 @@ class Config:
     archive_dir: str = os.getenv("ARCHIVE_DIR", "./archive").strip()
 
     recent_months: int = int(os.getenv("RECENT_MONTHS", "18"))
+    
+    boost_flags = {
+    "dataset": ["dataset", "data set", "benchmark"],
+    "code": ["code", "github", "open source", "repository"],
+    "survey": ["survey", "tutorial", "systematic review"],
+    }
 
     # 你的重点关键词（核心5个 + 扩展）
     core_keywords = [
-        "intrusion detection",
-        "anomaly detection",
-        "distributed ids",
-        "federated security",
-        "ai for cybersecurity",
+    "multi-agent cybersecurity",
+    "llm for cybersecurity",
+    "security agent",
+    "autonomous incident response",
+    "soc automation",
     ]
 
     primary_areas = {
-        "IDS": [
-            "intrusion detection", "network intrusion", "ids",
-            "network security", "network traffic", "traffic analysis",
-            "anomaly detection", "malware", "botnet",
-        ],
-        "AI+Security": [
-            "ai for cybersecurity", "machine learning", "deep learning",
-            "adversarial", "evasion", "poisoning", "robust",
-        ],
-        "Distributed/Collaborative IDS": [
-            "distributed ids", "collaborative ids", "multi-agent",
-            "multi agent", "federated", "collaborative detection",
-            "feature partition", "information fusion",
-        ],
-        "Comm-efficient Learning": [
-            "communication-efficient", "compression", "quantization",
-            "sketch", "distillation", "low bandwidth", "feature compression",
-        ],
-        "Federated Security": [
-            "federated learning", "privacy-preserving", "secure aggregation",
-            "differential privacy", "federated ids", "federated security",
-        ],
+    "Multi-Agent Security": [
+        "multi-agent", "multi agent", "llm agent", "language agent",
+        "agentic", "agent-based", "multi-agent system", "collaborative agent",
+    ],
+    "Security Operations / SOC": [
+        "soc", "security operations", "security operation center",
+        "alert triage", "incident response", "security orchestration",
+        "analyst copilot", "security assistant",
+    ],
+    "Threat Intelligence & Reasoning": [
+        "threat intelligence", "ioc", "ttp", "attack chain",
+        "mitre att&ck", "attack graph", "threat hunting",
+        "reasoning", "cyber reasoning",
+    ],
+    "LLM for Cybersecurity": [
+        "large language model", "llm", "retrieval-augmented generation",
+        "rag", "tool use", "planning", "reflection", "self-correction",
+    ],
+    "Cyber Defense Automation": [
+        "autonomous defense", "automated response", "defensive agent",
+        "security workflow", "playbook", "orchestration", "verification",
+    ],
     }
 
     secondary_areas = {
-        "Transformer/Attention": [
-            "transformer", "attention", "self-attention",
-        ],
-        "GNN/Security": [
-            "graph neural", "gnn", "graph-based",
-        ],
-        "Tabular ML": [
-            "tabular", "xgboost", "lightgbm", "catboost",
-        ],
-    }
-
-    boost_flags = {
-        "dataset": ["dataset", "data set", "benchmark"],
-        "code": ["code", "github", "open source", "repository"],
-        "survey": ["survey", "tutorial", "systematic review"],
+    "Benchmark/Dataset": [
+        "benchmark", "dataset", "evaluation", "leaderboard",
+    ],
+    "Agent Memory/Planning": [
+        "memory", "planner", "planning", "task decomposition",
+        "coordination", "workflow",
+    ],
+    "Knowledge Graph / Graph Reasoning": [
+        "knowledge graph", "graph reasoning", "attack graph",
+        "graph neural", "graph-based",
+    ],
     }
 
 def get_config() -> Config:

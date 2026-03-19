@@ -15,7 +15,7 @@ def render_weekly_trend(today_str: str, recent_papers: List[Dict[str, Any]]) -> 
     top = c.most_common(10)
 
     lines = []
-    lines.append(f"# 本周 IDS/AI安全 趋势总结（截至 {today_str}）\n")
+    lines.append(f"# 本周 多智能体网络安全 趋势总结（截至 {today_str}）\n")
     if not top:
         lines.append("近7天数据不足，建议扩大FETCH_DAYS或检查数据源。")
         return "\n".join(lines)
@@ -25,6 +25,6 @@ def render_weekly_trend(today_str: str, recent_papers: List[Dict[str, Any]]) -> 
         lines.append(f"- {k}: {v}")
 
     lines.append("\n## 可能的新趋势（粗粒度）")
-    lines.append("- 如果 `Distributed/Collaborative IDS`、`Comm-efficient Learning`、`Federated Security` 同时升温，通常意味着“协同检测 + 低通信代价”成为热点。")
-    lines.append("- 如果 `adversarial/robust` 相关标签升温，说明“对抗攻击/鲁棒IDS”在活跃。")
+    lines.append("- 如果 `Multi-Agent Security`、`LLM for Cybersecurity`、`Security Operations / SOC` 同时升温，通常意味着“多智能体安全运营自动化”正在成为热点。")
+    lines.append("- 如果 `Threat Intelligence & Reasoning`、`Knowledge Graph / Graph Reasoning` 相关标签升温，说明“威胁情报关联与攻击链推理”在活跃。")
     return "\n".join(lines)

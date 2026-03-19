@@ -3,9 +3,9 @@ from datetime import date
 
 def render_daily(date_str: str, items: List[Dict[str, Any]]) -> str:
     lines = []
-    lines.append(f"# 今日 IDS / AI安全 科研前沿（{date_str}）")
+    lines.append(f"# 今日 多智能体网络安全 科研前沿（{date_str}）")
     lines.append("")
-    lines.append("> 覆盖：IDS｜AI+安全｜分布式协同IDS｜通信效率学习｜联邦学习安全（优先1–3年新进展）")
+    lines.append("> 覆盖：多智能体安全分析｜LLM+网络安全｜SOC自动化｜威胁情报推理｜事件响应自动化（优先近1–3年新进展）")
     lines.append("")
 
 

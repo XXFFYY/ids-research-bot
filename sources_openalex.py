@@ -5,11 +5,11 @@ from datetime import datetime, timedelta
 def fetch_openalex(fetch_days: int = 14, per_page: int = 50) -> List[Dict[str, Any]]:
     # 你的5个核心监控关键词（英文即可）
     queries = [
-        "intrusion detection",
-        "anomaly detection network traffic",
-        "distributed intrusion detection",
-        "federated learning security intrusion detection",
-        "ai for cybersecurity intrusion detection",
+    "multi-agent cybersecurity",
+    "llm cybersecurity agent",
+    "autonomous incident response",
+    "soc automation large language model",
+    "threat intelligence reasoning llm",
     ]
 
     since = (datetime.utcnow().date() - timedelta(days=fetch_days)).isoformat()

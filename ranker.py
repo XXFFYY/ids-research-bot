@@ -45,7 +45,7 @@ def score_paper(p: Dict[str, Any], cfg) -> Tuple[float, Dict[str, Any]]:
             tags.append(area)
 
     # “数据集/benchmark/代码/survey”额外加权
-    for flag, kws in cfg.boost_flags.items():
+    for flag, kws in getattr(cfg, "boost_flags", {}).items():
         if any(_norm(k) in text for k in kws):
             score += 3.0
             tags.append(flag)

@@ -62,6 +62,9 @@ class Storage:
             venue TEXT,
             abstract TEXT,
             extra TEXT,
+            tags TEXT,
+            radar_flags TEXT,
+            score REAL,
             created_at TEXT
         )
         """)
@@ -90,8 +93,9 @@ class Storage:
     def upsert_paper(self, p: Dict[str, Any]) -> str:
         pid = p.get("id") or _hash((p.get("url","") + p.get("title","")).strip())
         self.conn.execute("""
-        INSERT OR REPLACE INTO papers (id,title,url,source,published,venue,abstract,extra,created_at)
-        VALUES (?,?,?,?,?,?,?,?,?)
+        INSERT OR REPLACE INTO papers
+        (id,title,url,source,published,venue,abstract,extra,tags,radar_flags,score,created_at)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
         """, (
             pid,
             p.get("title",""),
@@ -101,6 +105,9 @@ class Storage:
             p.get("venue",""),
             p.get("abstract",""),
             p.get("extra",""),
+            "||".join(p.get("tags", [])),
+            "||".join(p.get("radar_flags", [])),
+            float(p.get("score", 0) or 0),
             datetime.utcnow().isoformat()
         ))
         self.conn.commit()
@@ -124,7 +131,7 @@ class Storage:
 
     def get_recent_papers(self, days: int = 14) -> List[Dict[str, Any]]:
         cur = self.conn.execute("""
-        SELECT id,title,url,source,published,venue,abstract,extra
+        SELECT id,title,url,source,published,venue,abstract,extra,tags,radar_flags,score
         FROM papers
         ORDER BY published DESC
         LIMIT 500
@@ -133,8 +140,17 @@ class Storage:
         res = []
         for r in rows:
             res.append({
-                "id": r[0], "title": r[1], "url": r[2], "source": r[3],
-                "published": r[4], "venue": r[5], "abstract": r[6], "extra": r[7],
+                "id": r[0],
+                "title": r[1],
+                "url": r[2],
+                "source": r[3],
+                "published": r[4],
+                "venue": r[5],
+                "abstract": r[6],
+                "extra": r[7],
+                "tags": r[8].split("||") if r[8] else [],
+                "radar_flags": r[9].split("||") if r[9] else [],
+                "score": float(r[10] or 0),
             })
         return res
 

@@ -15,7 +15,7 @@ def main():
     insight = llm_trend_summary(cfg, "月报", start, end, stats_md, items_md)
 
     md = "\n".join([
-        f"# IDS 科研月报（{start.isoformat()} ~ {end.isoformat()}）",
+        f"# 多智能体网络安全科研月报（{start.isoformat()} ~ {end.isoformat()}）",
         "",
         stats_md,
         "",
@@ -24,7 +24,7 @@ def main():
         insight,
     ])
 
-    title = f"IDS科研月报（{start.isoformat()}~{end.isoformat()}）"
+    title = f"多智能体网络安全科研月报（{start.isoformat()}~{end.isoformat()}）"
     ok = push_pushplus(cfg.pushplus_token, title, md)
     print("[OK]" if ok else "[WARN]", "monthly pushed")
 

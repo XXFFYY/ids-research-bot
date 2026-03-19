@@ -11,11 +11,11 @@ def fetch_semantic(fetch_days: int = 7, limit: int = 40) -> List[Dict[str, Any]]
     year_from = (today - timedelta(days=365*3)).year
 
     queries = [
-        "Intrusion Detection",
-        "Network Anomaly Detection",
-        "Distributed IDS",
-        "Federated Intrusion Detection",
-        "AI for Cybersecurity IDS",
+    "multi-agent cybersecurity",
+    "llm agents for incident response",
+    "security operations center automation llm",
+    "threat intelligence reasoning with llm",
+    "autonomous cyber defense agents",
     ]
 
     fields = "title,abstract,url,venue,year,publicationDate"
